@@ -1,0 +1,106 @@
+= linecfg format specification
+zimbatm <zimbatm@zimbatm.com>
+v1.0.0, 2016-09-13
+:description: This document specifies the lincfg format
+:keywords: format, spec, linecfg
+:toc:
+:experimental:
+:source-highlighter: coderay
+:table-caption!:
+:example-caption!:
+:figure-caption!:
+:icons: font
+:linkattrs:
+
+Status:: DRAFT
+
+== The problem
+
+We need a unified way to transmit configuration options to clients.
+We want this format to be easily copy&paste-able.
+It needs to be a string so it can be stored in an environment variable.
+
+In the past we have tried two different approaches which each have their own
+problems:
+
+=== Storing configuration as a URL
+
+We use that for the `PUSHER_URL`
+
+* URL is a non-regular and badly specified  format.
+* It’s meant to point to resources, not serve as a configuration option.
+* No possible default host value.
+* Querystring encoding is a mess. Percent-encoded values.
+
+=== Storing configuration inside the code
+
+The DDN dashboard displays per-language settings. Then it’s easy for the
+customer to copy&paste that example code into his project and get started.
+
+The issue with that approach is two-fold: first it encourages to embed
+credentials into the code. Once it’s there it’s annoying to convert each key
+back to an environment variable on twelve-factor apps. Second, if the language
+is not supported by Pusher then the user is left on his own to copy&paste the
+right credentials in the right place.
+
+== Proposal
+
+Wherein we propose a universal configuration format that works and is easily
+implementable in all client libraries.  Introducing the line format It’s a
+simple key=value format that can be written on a single line, similar to
+logfmt, let’s call it the line format.  This can then be stored in an
+environment variable like this:
+
+    PUSHER_CLIENT="host=api-mt1.pusher.com app_id=4 key=... secret=..."
+
+This format is designed to stand on it’s own and could be used by other
+programs.
+
+Pseudo BNF for the line format
+
+----
+key = /[^=\s]+/
+value = /[^\s]*/
+pair = key, "=", value
+line = ( pair, (" ", pair )* )?, " "*
+----
+
+The parser MUST be strict on white spaces to detect inconsistencies early-on.
+
+We assume that the string is UTF-8 encoded but it’s better to restrict the keys
+and values to the ASCII range.
+
+=== Example ruby parser
+
+This is the reference implementation.
+
+[source,ruby]
+----
+def parse_line(line) #=> Hash
+  raise "Too much white space" if line.match(/^ | {2,}/)
+  line
+    .split(/ /)
+    .each_with_object({}) do |pair, obj|
+      k, v = pair.split('=', 2)
+      # If v is nil it means the pair doesn't contain an = sign
+      raise "Invalid pair #{pair}" if v.nil?
+      obj[k] = v
+    end
+end
+----
+
+=== Program Schema
+
+At this point all keys and values are strings. It's up to the program to
+implement a fixed schema and convert the string values into int, double,
+timestamps, ...
+
+The schema SHOULD be closed for extension so as to detect key errors early-on.
+
+== FAQ
+
+Q:: How does it compare to https://www.brandur.org/logfmt[logfmt]?
+A:: It is the same format on output but logfmt has a much more complex parsing strategy to detect cut lines (syslog has a 4KB default per line) and malformed data (we don’t emit arbitrary data).
+
+Q:: Wouldn’t it make more sense to store each key=value pair as individual environment variables? Each key could be prefixed and uppercase so that “host” would become MYPROGRAM_HOST.
+A:: Yes but then the client can’t copy&paste just one string around. If the client wants to configure two clients he has to change a lots of prefixes.

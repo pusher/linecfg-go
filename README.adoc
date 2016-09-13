@@ -1,0 +1,64 @@
+= linecfg - a single-line configuration format
+
+linecfg is a single-line configuration format. It solves the case where you
+want to pass some configuration to a process in a single environment variable.
+It's better than to cram everything into a URL.
+
+This repo provides the canonical implementation in go.
+
+== How does it look like?
+
+The linecfg is essentially key=value pairs separated by a single space:
+
+    host=localhost port=400 timeout=5s
+
+It should be easy enough to implement in a couple of lines in any language.
+
+For more details look at the full spec: link:SPEC.adoc[]
+
+== Health
+
+* image:https://travis-ci.org/pusher/linecfg-go.svg?branch=master["Build Status", link="https://travis-ci.org/pusher/linecfg-go"]
+* image:https://gocover.io/_badge/github.com/pusher/linecfg-go?1["Coverage", link="https://gocover.io/github.com/pusher/linecfg-go"]
+* image:https://godoc.org/github.com/julienschmidt/httprouter?status.svg["GoDoc", link="http://godoc.org/github.com/pusher/linecfg-go"]
+
+== Go example
+
+[source,go]
+.example/main.go
+----
+package main
+
+import (
+       "log"
+
+       "github.com/pusher/linecfg-go"
+)
+
+type Config struct {
+       Host     string
+       SomePort int `linecfg:"port"`
+}
+
+func main() {
+       c := new(Config)
+
+       err := linecfg.Getenv("MY_CFG", c)
+       if err != nil {
+               log.Fatalln(err)
+       }
+
+       log.Println("host", c.Host)
+       log.Println("port", c.SomePort)
+}
+----
+
+....
+$ MY_CFG="host=localhost port=443" go run example/main.go
+2016/09/13 16:37:15 host localhost
+2016/09/13 16:37:15 port 443
+....
+
+== License
+
+Copyright 2016 Pusher Ltd. Licensed under the ISC. See link:LICENSE[].
