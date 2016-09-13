@@ -14,7 +14,8 @@ The linecfg is essentially key=value pairs separated by a single space:
 
 It should be easy enough to implement in a couple of lines in any language.
 
-For more details look at the full spec: link:SPEC.adoc[]
+For more details on why this is the right thing to do look at the full spec:
+link:SPEC.adoc[]
 
 == Health
 
