@@ -62,7 +62,7 @@ Pseudo BNF for the line format
 key = /[^=\s]+/
 value = /[^\s]*/
 pair = key, "=", value
-line = ( pair, (" ", pair )* )?, " "*
+line = " "* | pair, " ", line
 ----
 
 The parser MUST be strict on white spaces to detect inconsistencies early-on.
