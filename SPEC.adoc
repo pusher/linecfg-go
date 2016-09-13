@@ -104,3 +104,13 @@ A:: It is the same format on output but logfmt has a much more complex parsing s
 
 Q:: Wouldn’t it make more sense to store each key=value pair as individual environment variables? Each key could be prefixed and uppercase so that “host” would become MYPROGRAM_HOST.
 A:: Yes but then the client can’t copy&paste just one string around. If the client wants to configure two clients he has to change a lots of prefixes.
+
+Q:: Is the empty-string line valid?
+A:: Yes
+
+Q:: Why are spaces allowed at the end?
+A:: Because it doesn't hurt and copy&pasting often has an extra space at the end.
+
+Q:: Why can values have the equal (`=`) character in them?
+A:: Because it doesn't hurt
+
